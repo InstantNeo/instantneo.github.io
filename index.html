@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>InstantNeo — Instant agents for intelligent systems</title>
+  <meta name="description" content="InstantNeo: a minimal, composable Python library for LLM-based agents. Unified providers, skill manager, flexible execution." />
+  <meta name="theme-color" content="#0A0F0D" />
+  <meta property="og:title" content="InstantNeo — Instant agents for intelligent systems" />
+  <meta property="og:description" content="A minimal Python library for LLM-based agents. Simple to start, powerful when composed." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/og.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Oxanium:wght@400;500;600;700;800&display=swap" rel="stylesheet">  <style>
+    :root {
+      --bg: #0a0f0e;
+      --bg-elevated: #111916;
+      --bg-card: #14201A;
+      --text: #ECFDF5;
+      --text-secondary: #A3B9AD;
+      --text-tertiary: #6B7F73;
+      --accent: #00E676;
+      --accent-bright: #00F5A0;
+      --accent-dim: #00C853;
+      --border: #1F2D26;
+      --border-elevated: #2D3F35;
+      --code-bg: #0D1812;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --shadow-colored: rgba(0, 230, 118, 0.15);
+      --glow: rgba(0, 230, 118, 0.25);
+      --glow-bright: rgba(0, 245, 160, 0.4);
+      --container: 1080px;
+    }
+    
+    * { 
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    *:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+    
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: 'Oxanium', system-ui, sans-serif; 
+      color: var(--text);
+      background: 
+        radial-gradient(circle at 80% 0%, rgba(0, 230, 118, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 20% 100%, rgba(0, 200, 83, 0.06) 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .container { 
+      max-width: var(--container); 
+      margin: 0 auto; 
+      padding: 0 20px; 
+    }
+
+    /* NAV */
+    .nav { 
+      position: sticky; 
+      top: 0; 
+      z-index: 40; 
+      backdrop-filter: blur(12px) saturate(180%); 
+      background: rgba(10, 15, 13, 0.85); 
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 3px var(--shadow);
+    } 
+    
+    .nav-inner { 
+      height: 64px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+    }
+    
+    .brand { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      font-weight: 700; 
+      letter-spacing: 0.3px;
+      font-size: 15px;
+      cursor: default;
+      color: var(--text);
+    }
+    
+    .brand .logo {
+    width: 160px; /* o el tamaño que prefieras */
+    height: auto;
+    }
+    .dot { 
+      width: 8px; 
+      height: 8px; 
+      border-radius: 50%; 
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+      box-shadow: 0 0 16px var(--glow), 0 0 4px var(--glow-bright);
+      animation: pulse 2.5s ease-in-out infinite;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .brand:hover .dot {
+      transform: scale(1.2);
+      animation-play-state: paused;
+      box-shadow: 0 0 20px var(--glow-bright), 0 0 8px var(--glow);
+    }
+    
+    @keyframes pulse {
+      0%, 100% { 
+        opacity: 1; 
+        transform: scale(1); 
+        box-shadow: 0 0 16px var(--glow), 0 0 4px var(--glow-bright);
+      }
+      50% { 
+        opacity: 0.8; 
+        transform: scale(0.95); 
+        box-shadow: 0 0 12px var(--glow), 0 0 2px var(--glow-bright);
+      }
+    }
+    
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    
+    .links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .links a { 
+      color: var(--text-secondary); 
+      text-decoration: none; 
+      padding: 8px 16px;
+      font-size: 14px; 
+      font-weight: 500;
+      transition: all .2s ease;
+      position: relative;
+      border-radius: 6px;
+    }
+    
+    .links a:hover { 
+      color: var(--accent-bright);
+      background: rgba(0, 230, 118, 0.08);
+    }
+    
+    .links a::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: 16px;
+      right: 16px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+      transform: scaleX(0);
+      transition: transform .2s ease;
+      border-radius: 2px;
+    }
+    
+    .links a:hover::after {
+      transform: scaleX(1);
+    }
+    
+    .lang-toggle {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-elevated);
+      border-radius: 8px;
+      padding: 7px 13px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    
+    .lang-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent-bright);
+      background: rgba(0, 230, 118, 0.08);
+      box-shadow: 0 4px 8px var(--shadow-colored);
+      transform: translateY(-1px);
+    }
+    
+    @media (max-width: 768px) {
+      .links a:not(:last-child) { display: none; }
+      .nav-inner { gap: 12px; }
+      .nav-right { gap: 12px; }
+    }
+
+    /* HERO */
+    .hero { 
+      position: relative;
+      padding: clamp(60px, 12vh, 120px) 0 60px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .title { 
+      font-size: clamp(40px, 6vw, 68px); 
+      font-weight: 600; 
+      line-height: 1.08; 
+      letter-spacing: -0.025em;
+      color: var(--text);
+      margin-bottom: 0;
+    }
+    
+    .accent { 
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 600;
+      filter: drop-shadow(0 0 20px var(--glow));
+    }
+    
+    .lead { 
+      color: var(--text-secondary); 
+      font-size: clamp(17px, 2.2vw, 21px); 
+      margin: 24px 0 28px;
+      max-width: 680px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+    
+    .badges { 
+      display: flex; 
+      gap: 10px; 
+      flex-wrap: wrap; 
+      margin: 20px 0 32px;
+    }
+    
+    .badges img { 
+      height: 22px;
+      opacity: 0.85;
+      transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(0);
+      filter: brightness(1);
+    }
+    
+    .badges img:hover { 
+      opacity: 1;
+      
+      filter: brightness(1.1) drop-shadow(0 4px 8px var(--shadow-colored));
+    }
+
+    /* BUTTONS */
+    .btn-group { 
+      display: flex; 
+      gap: 12px; 
+      flex-wrap: wrap; 
+      margin-top: 32px; 
+    }
+    
+    @media (max-width: 640px) {
+      .btn-group { flex-direction: column; }
+    }
+    
+    .btn { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      padding: 13px 26px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left .5s ease;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn-primary { 
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+      color: #0A0F0D;
+      border-color: transparent;
+      box-shadow: 0 4px 12px var(--shadow-colored), 0 2px 4px var(--shadow);
+      font-weight: 700;
+    }
+    
+    .btn-primary:hover { 
+      box-shadow: 0 8px 24px var(--glow), 0 4px 8px var(--shadow-colored);
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary { 
+      background: var(--bg-elevated);
+      color: var(--text);
+      border-color: var(--border-elevated);
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    
+    .btn-secondary:hover { 
+      border-color: var(--accent);
+      color: var(--accent-bright);
+      background: rgba(0, 230, 118, 0.08);
+      box-shadow: 0 4px 12px var(--shadow-colored);
+      transform: translateY(-1px);
+    }
+
+    /* CODE BLOCK */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 48px 0;
+      position: relative;
+      box-shadow: 0 8px 24px var(--shadow),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      transition: all .3s ease;
+    }
+    
+    .code-block:hover {
+      border-color: var(--border-elevated);
+      box-shadow: 0 12px 32px var(--shadow),
+                  0 0 0 1px var(--border-elevated),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    
+    .code-header {
+      color: var(--text-tertiary);
+      font-size: 13px;
+      margin-bottom: 16px;
+      font-family: 'Oxanium', monospace;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    
+    pre { 
+      overflow-x: auto;
+      font-family: 'Oxanium', monospace;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+    
+    code { color: #D1FAE5; }
+    .k { color: #00F5A0; font-weight: 600; } 
+    .s { color: #69F0AE; } 
+    .n { color: #A7F3D0; } 
+    .f { color: #00E676; font-weight: 600; }
+    .c { color: #6B7F73; font-style: italic; }
+    
+    .copy-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-elevated);
+      color: var(--accent);
+      padding: 7px 15px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0.7;
+      font-family: 'Oxanium', monospace;
+      font-weight: 600;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    
+    .code-block:hover .copy-btn,
+    .copy-btn:focus { 
+      opacity: 1; 
+    }
+    
+    .copy-btn:hover { 
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+      color: #0A0F0D;
+      border-color: transparent;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--glow);
+    }
+
+    /* SECTIONS */
+    section { padding: 80px 0; }
+    
+    section h2 {
+      font-size: clamp(32px, 4.5vw, 42px);
+      margin-bottom: 20px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    
+    section p {
+      color: var(--text-secondary);
+      max-width: 720px;
+      font-size: 18px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+    
+    section h3 {
+      color: var(--accent-bright);
+      font-size: 19px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+    }
+
+    /* GRIDS */
+    .why-grid,
+    .install-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+    
+    @media (max-width: 768px) {
+      .why-grid,
+      .install-grid { 
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .why-item {
+      padding: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .why-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent-bright) 100%);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .3s ease;
+    }
+    
+    .why-item::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(0, 230, 118, 0.08), transparent 70%);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+    
+    .why-item:hover {
+      border-color: var(--accent);
+      box-shadow: 0 12px 32px var(--shadow), 
+                  0 0 0 1px var(--accent),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      transform: translateY(-4px);
+    }
+    
+    .why-item:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .why-item:hover::after {
+      opacity: 1;
+    }
+    
+    .why-item p {
+      font-size: 16px;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* CONTRIB */
+    .contrib-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      margin-top: 32px;
+    }
+    
+    @media (max-width: 768px) {
+      .contrib-content { 
+        grid-template-columns: 1fr; 
+        gap: 32px; 
+      }
+    }
+    
+    .contrib-list {
+      list-style: none;
+      margin-top: 16px;
+    }
+    
+    .contrib-list li {
+      padding: 10px 0;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.6;
+      transition: color .2s ease;
+    }
+    
+    .contrib-list li:hover {
+      color: var(--text);
+    }
+    
+    .contrib-list li::before {
+      content: "→";
+      color: var(--accent-bright);
+      margin-right: 12px;
+      font-weight: bold;
+      display: inline-block;
+      transition: transform .2s ease;
+    }
+    
+    .contrib-list li:hover::before {
+      transform: translateX(4px);
+    }
+    
+    .contrib-list a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all .2s ease;
+      font-weight: 500;
+      border-bottom: 1px solid transparent;
+    }
+    
+    .contrib-list a:hover {
+      color: var(--accent-bright);
+      border-bottom-color: var(--accent-bright);
+    }
+
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, 
+        transparent, 
+        var(--border), 
+        var(--border-elevated), 
+        var(--border), 
+        transparent);
+      margin: 100px 0;
+      position: relative;
+    }
+    
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      filter: blur(4px);
+      opacity: 0.4;
+    }
+
+    /* FOOTER */
+    footer { 
+      border-top: 1px solid var(--border); 
+      margin-top: 100px; 
+      padding: 40px 0;
+      background: var(--bg-elevated);
+      box-shadow: 0 -4px 12px var(--shadow);
+    }
+    
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      color: var(--text-tertiary);
+      font-size: 14px;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all .2s ease;
+      font-weight: 500;
+      position: relative;
+    }
+    
+    .footer-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: var(--accent-bright);
+      transition: width .2s ease;
+    }
+    
+    .footer-links a:hover { 
+      color: var(--accent-bright);
+    }
+    
+    .footer-links a:hover::after {
+      width: 100%;
+    }
+
+    
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+  <img src="logo_instantneo_claro.svg" alt="Logo InstantNeo" class="logo">
+</div>
+      <div class="nav-right">
+        <nav class="links">
+          <a href="#why" data-i18n="nav.why">Why</a>
+          <a href="#quickstart" data-i18n="nav.quickstart">Quickstart</a>
+          <a href="#contrib" data-i18n="nav.contribute">Contribute</a>
+          <a href="https://github.com/InstantNeo/instantneo" target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
+        <button class="lang-toggle" onclick="toggleLanguage()" aria-label="Toggle language">
+          <span id="lang-display">EN</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="title" data-i18n-html="hero.title">Build <span class="accent">instant agents</span> to compose intelligent systems.</h1>
+      
+      <div class="badges">
+        <img src="https://img.shields.io/github/stars/InstantNeo/instantneo?style=flat&color=00E676" alt="GitHub stars">
+        <img src="https://img.shields.io/github/contributors/InstantNeo/instantneo?style=flat&color=00E676" alt="Contributors">
+        <img src="https://img.shields.io/github/license/InstantNeo/instantneo?style=flat&color=00E676" alt="License">
+        <img src="https://img.shields.io/badge/python-3.8+-00E676?style=flat" alt="Python">
+      </div>
+      
+      <p class="lead" data-i18n="hero.lead">The simplest open-source library for LLM agents. Granular control, zero hidden logic. Composable building blocks for intelligent systems.</p>
+      <div class="code-block">
+        <div class="code-header">$ Crea un agente</div>
+        <pre><code><span class="k">from</span> <span class="n">instantneo</span> <span class="k">import</span> <span class="n">InstantNeo</span>
+<span class="n">neo</span> <span class="k">=</span> <span class="n">InstantNeo</span>(
+      <span class="n">provider</span><span class="k">=</span><span class="s">"openai"</span>,
+      <span class="n">model</span><span class="k">=</span><span class="s">"gpt-4o"</span>,
+      <span class="n">api_key</span><span class="k">=</span><span class="s">"..."</span>,
+      <span class="n">role_setup</span><span class="k">=</span><span class="s">"Eres Neo, el elegido, de la Matrix"</span>
+)      
+<span class="n">neo</span>.<span class="f">run</span>(<span class="s">"¿Qué es la Matrix?"</span>)</code></pre>
+<!--<button class="copy-btn" onclick="copyCode(0)" data-i18n="code.copy">copy</button>-->
+      </div>
+      
+  </section>
+ 
+  <!-- WHY -->
+  <section id="why">
+    <div class="container">
+      <h2 data-i18n="why.title">Why InstantNeo?</h2>
+      <p data-i18n-html="why.description">Inspired by Minsky's <em>Society of Mind</em>: specialized agents you compose to build intelligent systems. Each agent is transparent, controllable, and minimal.</p>
+      
+      <div class="why-grid">
+        <div class="why-item">
+          <h3 data-i18n="why.control.title">Granular Control</h3>
+          <p data-i18n="why.control.description">Own your execution flow. WAIT_RESPONSE, EXECUTION_ONLY, or GET_ARGS—you decide every step. No hidden orchestration.</p>
+        </div>
+        <div class="why-item">
+          <h3 data-i18n="why.simple.title">Dead Simple</h3>
+          <p data-i18n="why.simple.description">5 lines to start. One decorator for skills. Switch providers with one parameter. Built for speed, not ceremony.</p>
+        </div>
+        <div class="why-item">
+          <h3 data-i18n="why.transparent.title">Transparent</h3>
+          <p data-i18n="why.transparent.description">See what happens, when it happens. Every action is explicit and traceable. No framework magic.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="divider"></div></div>
+
+  <!-- QUICKSTART -->
+  <section id="quickstart">
+    <div class="container">
+      <h2 data-i18n="quickstart.title">Quickstart</h2>
+      <p data-i18n="quickstart.description">Install and teach Neo kung fu in 90 seconds.</p>
+
+      <div class="install-grid">
+        <div>
+          <div class="code-block">
+            <div class="code-header">$ instalar</div>
+<pre><code>pip install instantneo[all]
+<span class="c"># or target specific providers</span>
+<span class="c"># pip install instantneo[openai]</span>
+<span class="c"># pip install instantneo[anthropic]</span>
+</code></pre>
+            <!--<button class="copy-btn" onclick="copyCode(1)" data-i18n="code.copy">copy</button>-->
+          </div>
+        </div>
+
+    </div>
+        <div>
+          <div class="code-block">
+            <div class="code-header">$ teach_kung_fu.py</div>
+<pre><code><span class="k">from</span> <span class="n">instantneo</span> <span class="k">import</span> <span class="n">InstantNeo</span>
+<span class="k">from</span> <span class="n">instantneo.skills</span> <span class="k">import</span> <span class="n">skill</span>
+
+<span class="c"># 1. Define una skill</span>
+<span class="k">@</span><span class="n">skill</span>(<span class="n">description</span><span class="k">=</span><span class="s">"""Ejecuta movimientos de Kung Fu para defenderte de ataques: 
+  Puño recto, Garra de tigre, Garra del dragón, Patada tornado"""</span>)
+<span class="k">def</span> <span class="f">kung_fu</span>(<span class="n">movimiento</span>: <span class="n">str</span>, <span class="n">intensidad</span>: <span class="n">int</span> <span class="k">=</span> <span class="n">5</span>):
+    <span class="k">return</span> <span class="s">f"¡Ejecutando {move} con intensidad {intensity}!"</span>
+
+<span class="c"># 2. Create a Neo con skills</span>
+<span class="n">neo</span> <span class="k">=</span> <span class="n">InstantNeo</span>(
+    <span class="n">provider</span><span class="k">=</span><span class="s">"anthropic"</span>,
+    <span class="n">model</span><span class="k">=</span><span class="s">"claude-3-7-sonnet-20250219"</span>,
+    <span class="n">api_key</span><span class="k">=</span><span class="s">"..."</span>,
+    <span class="n">role_setup</span><span class="k">=</span><span class="s">"Eres Neo, el elegido, de la Matrix"</span>,
+    <span class="n">skills</span><span class="k">=</span>[<span class="n">kung_fu</span>]
+)
+
+<span class="c"># 3. Run</span>
+<span class="n">neo</span>.<span class="f">run</span>(<span class="s">"Neo, te atancan tres agentes por el frente"</span>)</code></pre>
+            <!--<button class="copy-btn" onclick="copyCode(2)" data-i18n="code.copy">copy</button>-->
+          </div>
+        </div>
+        
+<div class="btn-group" style="margin-top: 40px;">
+  <a class="btn btn-primary" href="https://github.com/InstantNeo/instantneo" data-i18n="quickstart.docs" target="_blank" rel="noreferrer">
+    View on GitHub
+  </a>
+  <!--
+  <a class="btn btn-secondary" href="https://colab.research.google.com/github/InstantNeo/instantneo/blob/main/examples/quickstart.ipynb" data-i18n="quickstart.colab" target="_blank" rel="noreferrer">
+    Try in Colab →
+  </a>
+-->
+</div>
+    </div>
+
+      </div>
+
+      
+  </section>
+
+  <div class="container"><div class="divider"></div></div>
+
+
+
+  
+  <!-- FEATURES -->
+  <section>
+    <div class="container">
+      <h2 data-i18n="features.title">Features</h2>
+      <div class="why-grid">
+        <div class="why-item">
+          <h3 data-i18n="features.providers.title">Unified Providers</h3>
+          <p data-i18n="features.providers.description">Switch between OpenAI, Anthropic, Groq, and others with a consistent API. The library hides provider quirks.</p>
+        </div>
+        <div class="why-item">
+          <h3 data-i18n="features.skills.title">Skill Management</h3>
+          <p data-i18n="features.skills.description">Turn functions into skills via a decorator. Add metadata, validation, and compose dynamically.</p>
+        </div>
+        <div class="why-item">
+          <h3 data-i18n="features.execution.title">Flexible Execution</h3>
+          <p data-i18n="features.execution.description">Choose execution modes: WAIT_RESPONSE for full cycles, EXECUTION_ONLY for tools, or GET_ARGS for planning.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="divider"></div></div>
+
+  <!-- CONTRIBUTE -->
+  <section id="contrib">
+    <div class="container">
+      <h2 data-i18n="contrib.title">Join Us</h2>
+      <p data-i18n="contrib.description">Early contributors shape the core. Fast merges, direct impact.</p>
+
+        <div>
+          <h3 data-i18n="contrib.whatYouGain" style="padding-top: 1rem;">What you gain</h3>
+          <ul class="contrib-list">
+            <li data-i18n="contrib.knowledge">Deep LLM infrastructure knowledge</li>
+            <li data-i18n="contrib.influence">Influence on API design while it's moldable</li>
+            <li data-i18n="contrib.recognition">Recognition in a tool developers value</li>
+          </ul>
+        </div>
+        <div class="btn-group" style="margin-top: 40px;">
+    
+    <a class="btn btn-secondary" href="https://colab.research.google.com/github/InstantNeo/instantneo/blob/main/examples/quickstart.ipynb" data-i18n="contrib.cta" target="_blank" rel="noreferrer">
+      Try in Colab →
+    </a>
+</div>
+      </div>
+
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <span>© <span id="year"></span> InstantNeo · Diego Ponce de León · Lautaro Orbes · MIT</span>
+        <div class="footer-links">
+          <a href="https://github.com/InstantNeo/instantneo" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/InstantNeo/instantneo/tree/main/docs" target="_blank" rel="noreferrer" data-i18n="footer.docs">Docs</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Translations
+    const translations = {
+      en: {
+    nav: {
+      why: "Why",
+      quickstart: "Quickstart",
+      contribute: "Contribute"
+    },
+    hero: {
+      title: 'Build <span class="accent">instant agents</span> to compose intelligent systems',
+      lead: "A clean and simple library for building LLM-based agents, offering full transparency and fine-grained control over their behavior.",
+      getStarted: "Get Started",
+      viewGithub: "View on GitHub"
+    },
+    why: {
+      title: "Why InstantNeo?",
+      description: "Inspired by Minsky’s <em>Society of Mind</em>: specialized agents that work together to form intelligent systems. Every agent is transparent, controllable, and minimal.",
+      control: {
+        title: "Always in Control",
+        description: "Take full control over workflows and orchestration, and define exactly how your tools execute."
+      },
+      simple: {
+        title: "Extremely Simple",
+        description: "Building agents and skills is incredibly easy with InstantNeo. Our goal is to be the most straightforward and scalable LLM agent library available."
+      },
+      transparent: {
+        title: "Transparent",
+        description: "No black boxes here — every step of the logic is visible and understandable, so you always know what’s happening."
+      }
+    },
+    quickstart: {
+      title: "Quickstart",
+      description: "Install the library, create Neo, and teach it Kung Fu.",
+      colab: "Try it on Colab →",
+      docs: "View Documentation →"
+    },
+    features: {
+      title: "Features",
+      providers: {
+        title: "Multiple Providers",
+        description: "Easily switch between different model providers and models in seconds — simple, fast, and consistent."
+      },
+      skills: {
+        title: "Skill Management",
+        description: "Manage your agents’ skills clearly and intuitively. Grant and organize tool access, even dynamically."
+      },
+      execution: {
+        title: "Flexible Execution",
+        description: "Decide exactly how your agents execute actions, adapting their behavior to your goals."
+      }
+    },
+
+    contrib: {
+      title: "Join InstantNeo",
+      description: "We’re opening the door for new community collaborators to join us.",
+      whatYouGain: "What You’ll Gain",
+      knowledge: "Get hands-on experience designing and developing LLM-based agents. The longer you stay, the deeper you’ll learn.",
+      influence: "Help shape one of the simplest and most flexible agent libraries already powering production-grade systems.",
+      recognition: "Grow your professional profile and be recognized as a developer of intelligent systems.",
+      cta: "Fill out the form to join"
+    },
+    footer: {
+      docs: "Documentation",
+      contributors: "Contributors"
+    },
+    code: {
+      copy: "copy"
+    }
+  },
+      es: {
+        nav: {
+          why: "Por qué",
+          quickstart: "Inicio rápido",
+          contribute: "Contribuir"
+        },
+        hero: {
+          title: 'Construye <span class="accent">agentes al instante</span> para componer sistemas inteligentes',
+          lead: "Una librería simple y concisa para crear agentes LLM, con una interfaz limpia y control granular sobre su comportamiento.",
+          getStarted: "Comenzar",
+          viewGithub: "Ver en GitHub"
+        },
+        why: {
+          title: "¿Por qué InstantNeo?",
+          description: "Inspirado en <em>Society of Mind</em> de Minsky: agentes especializados que compones para construir sistemas inteligentes. Cada agente es transparente, controlable y mínimo.",
+          control: {
+            title: "Siempre en control",
+            description: "Controla los flujos de trabajo y orquestación, y determina el modo de ejecución de herramientas."
+          },
+          simple: {
+            title: "Extremadamente Simple",
+            description: "Construir agentes y habilidades es ultra simple con InstantNeo. Pretendemos ser la librería para agentes LLM más fácil de usar y de escalar"
+          },
+          transparent: {
+            title: "Transparente",
+            description: "La lógica es transparente para que siempre sepas lo que ocurre. No hay cajas negras."
+          }
+        },
+        quickstart: {
+          title: "Inicio Rápido",
+          description: "Instala la librería, crea a Neo y enséñale Kung Fu",
+          colab: "Probar en Colab →",
+          docs: "Ver documentación →"
+        },
+        features: {
+          title: "Características",
+          providers: {
+            title: "Múltiples proveedores",
+            description: "Utiliza distintos proveedores de modelos, y distintos modelos, de manera sencilla y rápida"
+          },
+          skills: {
+            title: "Gestión de Habilidades",
+            description: "Gestiona las habilidades de los agentes de manera clara y organizada. Administra el acceso a herramientas incluso de manera dinámica"
+          },
+          execution: {
+            title: "Ejecución Flexible",
+            description: "Determina cómo los agentes ejecutan acciones, de la forma en que mejor se adapten a tus objetivos"
+          }
+        },
+  
+        contrib: {
+          title: "Únete a InstantNeo",
+          description: "Abrimos la convocatoria para nuevos colaboradores de la comunidad.",
+          whatYouGain: "Beneficios",
+          knowledge: "Te capacitamos en el diseño y desarrollo de agentes basados en LLMs. Mientras más permanezcas en la comunidad, más podrás aprender",
+          influence: "Participa del crecimiento de una de las librerías más simples y flexibles, que ya es utilizada en producción en proyectos de nivel empresarial",
+          recognition: "Suma a tu experiencia y sé reconocido como desarrollador de sistemas inteligentes",
+          cta: "Completa el formulario para participar"
+        },
+        footer: {
+          docs: "Documentación",
+          contributors: "Contribuyentes"
+        },
+        code: {
+          copy: "copiar"
+        }
+      }
+    };
+
+    // Language management
+    let currentLang = localStorage.getItem('lang') || 'en';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      document.documentElement.lang = lang;
+      document.getElementById('lang-display').textContent = lang.toUpperCase();
+      
+      // Update all elements with data-i18n
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const keys = key.split('.');
+        let value = translations[lang];
+        keys.forEach(k => value = value[k]);
+        el.textContent = value;
+      });
+      
+      // Update all elements with data-i18n-html
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html');
+        const keys = key.split('.');
+        let value = translations[lang];
+        keys.forEach(k => value = value[k]);
+        el.innerHTML = value;
+      });
+    }
+
+    function toggleLanguage() {
+      setLanguage(currentLang === 'en' ? 'es' : 'en');
+    }
+
+    // Initialize language on load
+    setLanguage(currentLang);
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+    
+    // Code copying
+    const codeBlocks = [
+      `from instantneo import InstantNeo
+
+neo = InstantNeo(provider="openai", model="gpt-4o", api_key="...")
+neo.run("What's the Matrix?")`,
+      `pip install instantneo[all]
+
+# or target specific providers
+pip install instantneo[openai]
+pip install instantneo[anthropic]`,
+      `from instantneo import InstantNeo
+from instantneo.skills import skill
+
+# 1. Define a skill
+@skill(description="Execute kung fu")
+def kung_fu(move: str, intensity: int = 5):
+    return f"Hit {move} at {intensity}!"
+
+# 2. Create Neo with skills
+neo = InstantNeo(
+    provider="anthropic",
+    model="claude-3-7-sonnet-20250219",
+    role_setup="You are Neo.",
+    skills=[kung_fu]
+)
+
+# 3. Run
+neo.run("Three agents ahead!")`
+    ];
+    
+    function copyCode(index) {
+      navigator.clipboard.writeText(codeBlocks[index]).then(() => {
+        const btn = document.querySelectorAll('.copy-btn')[index];
+        const originalText = btn.textContent;
+        btn.textContent = currentLang === 'en' ? 'copied!' : '¡copiado!';
+        setTimeout(() => btn.textContent = originalText, 2000);
+      });
+    }
+
+    // Scroll arrow - solo visible en Hero
+const scrollArrow = document.querySelector('.scroll-arrow-float');
+const heroSection = document.querySelector('.hero');
+const quickstartSection = document.querySelector('#quickstart');
+
+if (scrollArrow && heroSection && quickstartSection) {
+  // Smooth scroll al hacer click
+  scrollArrow.addEventListener('click', function(e) {
+    e.preventDefault();
+    quickstartSection.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+    // Ocultar inmediatamente al hacer click
+    scrollArrow.classList.add('hidden');
+  });
+  
+  // Mostrar/ocultar basado en scroll position
+  window.addEventListener('scroll', () => {
+    const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+    const scrollPosition = window.scrollY + window.innerHeight;
+    
+    // Ocultar cuando sales del viewport del Hero
+    if (window.scrollY > heroBottom - 400) {
+      scrollArrow.classList.add('hidden');
+    } else {
+      scrollArrow.classList.remove('hidden');
+    }
+  });
+}
+  </script>
+</body>
+</html>
